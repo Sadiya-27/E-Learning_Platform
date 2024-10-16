@@ -1,18 +1,11 @@
-// /api/course/[courseId]/route.js
 import { NextResponse } from "next/server";
 import mongoose from "mongoose";
 import { connectionStr } from "@/utils/db";
 import { Course } from '@/utils/model/course';
 
-const connectToDatabase = async () => {
-  if (mongoose.connection.readyState === 0) {
-    await mongoose.connect(connectionStr);
-  }
-};
-
-export async function GET(request) {
-  await connectToDatabase();
-  const courseId = request.nextUrl.pathname.split('/').pop();
+export async function GET(request, { params }) {
+  await mongoose.connect(connectionStr);
+  const courseId = params.courseId;
 
   try {
     // Find the course by courseId
@@ -29,8 +22,8 @@ export async function GET(request) {
   }
 }
 
-export async function PUT({ params, request }) {
-  await connectToDatabase();
+export async function PUT(request, { params }) {
+  await mongoose.connect(connectionStr);
   const courseId = params.courseId;
 
   try {

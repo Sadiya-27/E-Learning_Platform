@@ -1,72 +1,73 @@
-// /api/course/route.js
-
 import mongoose from "mongoose";
 import { NextResponse } from "next/server";
-import { connectionStr } from "@/utils/db"; // Your connection string
-import { Course } from '@/utils/model/course'; // Import your Course model
-import { usePathname } from 'next/navigation'
+import { connectionStr } from "@/utils/db";
+import { Course } from '@/utils/model/course';
 
-// GET method to fetch a course or all courses
-export async function GET(request, { params }) {
-    let data = []
-    let success= true
-    try {
-        await mongoose.connect(connectionStr);
-        data = await Course.find();
+// Ensure Mongoose connection
+async function connectDB() {
+  if (mongoose.connection.readyState === 0) {
+    await mongoose.connect(connectionStr);
+  }
+}
 
-    } catch (error) {
-        data={result:error}
-        success: false
-    }
-    return NextResponse.json({result:data, success})
+// GET method to fetch all courses
+export async function GET() {
+  await connectDB();
+  try {
+    const data = await Course.find();
+    return NextResponse.json({ result: data, success: true });
+  } catch (error) {
+    console.error('Error fetching courses:', error);
+    return NextResponse.json({ result: error, success: false }, { status: 500 });
+  }
+}
+
+// POST method to create a new course
+export async function POST(request) {
+  await connectDB();
+  const payload = await request.json();
+  try {
+    const course = new Course(payload);
+    const result = await course.save();
+    return NextResponse.json({ result, success: true });
+  } catch (error) {
+    console.error('Error creating course:', error);
+    return NextResponse.json({ result: error, success: false }, { status: 500 });
+  }
 }
 
 // PUT method to update a course
 export async function PUT(request, { params }) {
-  await connectToDatabase(); // Ensure database is connected
-  const { id } = params;
+  await connectDB();
+  const courseId = params.id;
   const payload = await request.json();
 
   try {
-    const course = await Course.findByIdAndUpdate(id, payload, { new: true });
+    const course = await Course.findById(courseId);
     if (!course) {
       return NextResponse.json({ result: "Course not found", success: false }, { status: 404 });
     }
 
+    // Update course fields
+    Object.assign(course, payload);
+
+    // Update videoUrl within sections and chapters if provided
+    if (payload.sections) {
+      payload.sections.forEach((section, sectionIndex) => {
+        if (course.sections[sectionIndex]) {
+          section.chapters.forEach((chapter, chapterIndex) => {
+            if (course.sections[sectionIndex].chapters[chapterIndex]) {
+              course.sections[sectionIndex].chapters[chapterIndex].videoUrl = chapter.videoUrl;
+            }
+          });
+        }
+      });
+    }
+
+    await course.save();
     return NextResponse.json({ result: course, success: true });
   } catch (error) {
     console.error('Error updating course:', error);
     return NextResponse.json({ result: "Failed to update course", success: false }, { status: 500 });
   }
 }
-
-let router = usePathname();
-router.put('/:id', async (req, res) => {
-    await connectDB(); // Reuse the connection
-  
-    try {
-      const course = await Course.findByIdAndUpdate(req.params.id, req.body, { new: true });
-      if (!course) {
-        return res.status(404).json({ message: 'Course not found' });
-      }
-  
-      // Update the videoUrl field within the chapters array
-      course.sections.forEach((section) => {
-        section.chapters.forEach((chapter) => {
-          if (req.body.sections && req.body.sections[0].chapters) {
-            const updatedChapter = req.body.sections[0].chapters.find((c) => c.title === chapter.title);
-            if (updatedChapter) {
-              chapter.videoUrl = updatedChapter.videoUrl;
-            }
-          }
-        });
-      });
-  
-      await course.save(); // Save the updated course document
-  
-      res.json({ course, success: true });
-    } catch (error) {
-      console.error('Error updating course:', error);
-      res.status(500).json({ message: 'Error updating course' });
-    }
-  });
