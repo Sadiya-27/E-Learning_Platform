@@ -1,0 +1,14 @@
+[
+    {
+        "id": 1,
+        "title": "Course 1",
+        "description": "This is course 1",
+        "enrolled": true
+    },
+    {
+        "id": 2,
+        "title": "Course 2",
+        "description": "This is course 2",
+        "enrolled": true
+    }
+]
