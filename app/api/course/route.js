@@ -18,7 +18,7 @@ export async function GET() {
     return NextResponse.json({ result: data, success: true });
   } catch (error) {
     console.error('Error fetching courses:', error);
-    return NextResponse.json({ result: error, success: false }, { status: 500 });
+    return NextResponse.json({ result: error.message || 'Error fetching courses', success: false }, { status: 500 });
   }
 }
 
@@ -32,7 +32,7 @@ export async function POST(request) {
     return NextResponse.json({ result, success: true });
   } catch (error) {
     console.error('Error creating course:', error);
-    return NextResponse.json({ result: error, success: false }, { status: 500 });
+    return NextResponse.json({ result: error.message || 'Error creating course', success: false }, { status: 500 });
   }
 }
 
@@ -64,10 +64,11 @@ export async function PUT(request, { params }) {
       });
     }
 
+    // Save the updated course
     await course.save();
     return NextResponse.json({ result: course, success: true });
   } catch (error) {
     console.error('Error updating course:', error);
-    return NextResponse.json({ result: "Failed to update course", success: false }, { status: 500 });
+    return NextResponse.json({ result: error.message || "Failed to update course", success: false }, { status: 500 });
   }
 }

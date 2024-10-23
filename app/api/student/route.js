@@ -4,18 +4,15 @@ import { connectionStr } from "@/utils/db"
 import { Student } from "../../../utils/model/student";
 
 export async function GET() {
-    let data =[]
-    try{
+    let data = []
+    try {
         await mongoose.connect(connectionStr)
-    
         data = await Student.find();
-
-    } catch(error) {
-        data = {success: false,
-            error: error.message("something went wrong")
-        }
+    } catch (error) {
+        console.error('Error fetching student data:', error);
+        data = {success: false, error: 'Failed to fetch student data'};
     }
-    return NextResponse.json({result:data})
+    return NextResponse.json({result: data})
 }
 
 

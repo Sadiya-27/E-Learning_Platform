@@ -1,143 +1,101 @@
-import React from 'react';
-import styled from 'styled-components';
-import { Button } from '@/components/ui/button'
-
-const ContinueLearningContainer = styled.div`
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    margin: 20px;
-    padding-left: 20px;
-    padding-right: 20px;
-
-`;
-
-const CourseCard = styled.div`
-    width: 300px;
-    margin: 20px;
-    padding: 20px;
-    border: 1px solid #ccc;
-    background-color: #ffff;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-`;
-
-const CourseImage = styled.img`
-    width: 100%;
-    height: 150px;
-    object-fit: cover;
-    border-radius: 10px 10px 10px 10px;
-`;
-
-const CourseTitle = styled.h2`
-    font-size: 18px;
-    font-weight: bold;
-    margin-bottom: 10px;
-`;
-
-const CourseDescription = styled.p`
-    font-size: 14px;
-    margin-bottom: 20px;
-`;
-
-const ProgressBarContainer = styled.div`
-    width: 100%;
-    height: 20px;
-    background-color: #ccc;
-    border-radius: 10px;
-    overflow: hidden;
-`;
-
-const ProgressBar = styled.div`
-    width: ${({ progress }) => `${progress}%`};
-    height: 100%;
-    background-color: #4338ca;
-    border-radius: 10px;
-    transition: width 0.5s ease;
-`;
-
-const CourseContent = styled.div`
-    margin-top: 20px;
-`;
-
-const CourseContentTitle = styled.h3`
-    font-size: 16px;
-    font-weight: bold;
-    margin-bottom: 10px;
-`;
-
-const CourseContentList = styled.ul`
-    list-style: none;
-    padding: 0;
-    margin: 0;
-`;
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+import { useUser } from '@clerk/nextjs';
+import { useRouter } from 'next/navigation';
 
 const ContinueLearning = () => {
-    const courses = [
-        {
-        id: 1,
-        title: 'Course 1',
-        description: 'This is a sample course description.',
-        image: 'https://taffuploadsprod.s3.amazonaws.com/blog/wp-content/uploads/2023/08/08122246/Power-of-Python-for-AI-and-Machine-Learning.png',
-        progress: 50,
-        content: [
-            {
-            title: 'Module 1',
-            
-            },
-        ],
-        },
-        {
-        id: 2,
-        title: 'Course 2',
-        description: 'This is another sample course description.',
-        image: 'https://coursekit.dev/blog/online-course-react.png',
-        progress: 25,
-        content: [
-            {
-            title: 'Module 1',
-            
-            },
-        ],
-        },
-        {
-        id: 3,
-        title: 'Course 3',
-        description: 'This is yet another sample course description.',
-        image: 'https://media.licdn.com/dms/image/D5612AQE0r5WC8r0HQg/article-cover_image-shrink_720_1280/0/1657711469335?e=2147483647&v=beta&t=y46kqfqImgi-IbshBGRs3lMz1HCTBvL8RjFAILShitg',
-        progress: 75,
-        content: [
-            {
-            title: 'Module 1',
-            
-            },
-        ],
-        },
-    ];
+    const { user, isLoaded, isSignedIn } = useUser();
+    const userId = user?.id; // Get user ID
+    const [courses, setCourses] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+    const router = useRouter();
+
+    useEffect(() => {
+        const fetchCourses = async () => {
+            if (!userId) {
+                setError('User ID is not defined');
+                setLoading(false);
+                return;
+            }
+
+            try {
+                const response = await axios.get(`/api/student/${userId}`);
+                const { result } = response.data;
+
+                // Check if enrolledCourses exists and is an array
+                if (Array.isArray(result.enrolledCourses) && result.enrolledCourses.length) {
+                    const coursePromises = result.enrolledCourses.map(async (course) => {
+                        const courseResponse = await axios.get(`/api/course/${course.courseId}`);
+                        const courseData = courseResponse.data.result;
+
+                        // Calculate progress based on quizzes
+                        const quizzes = Array.isArray(courseData.sections) ? courseData.sections : [];
+                        const totalQuizzes = quizzes.length;
+                        const completedQuizzes = result.enrolledCourses.filter(quiz => quiz.quizId).length;
+                        console.log(result.enrolledCourses.filter(quiz => quiz.quizId))
+                        const progress = totalQuizzes ? (completedQuizzes / totalQuizzes) * 100 : 0;
+
+                        return {
+                            ...courseData,
+                            progress: Math.round(progress), // Round the progress
+                        };
+                    });
+
+                    const courseDetails = await Promise.all(coursePromises);
+                    setCourses(courseDetails);
+                } else {
+                    setError('No enrolled courses found');
+                }
+            } catch (error) {
+                console.error('Error fetching courses:', error);
+                setError('Failed to fetch courses');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        if (isLoaded) {
+            fetchCourses();
+        }
+        // } else if (!isSignedIn) {
+        //     setError('User is not signed in');
+        //     setLoading(false);
+        //     router.push('/sign-in'); // Redirect to sign-in page if user is not signed in
+        // }
+    }, [userId, isLoaded, isSignedIn, router]); // Add dependencies
+
+    if (loading) {
+        return <div className="text-center p-4">Loading courses...</div>;
+    }
+
+    if (error) {
+        return <div className="text-center text-red-500">{error}</div>;
+    }
 
     return (
-        <ContinueLearningContainer>
-        {courses.map(course => (
-            <CourseCard key={course.id} className='rounded-lg'>
-            <CourseImage src={course.image} className='p-0 mb-2 border rounded-xl'/>
-            <CourseTitle className='mt-2'>{course.title}</CourseTitle>
-            <CourseDescription>{course.description}</CourseDescription>
-            <ProgressBarContainer>
-                <ProgressBar progress={course.progress} />
-            </ProgressBarContainer>
-            <CourseContent>
-                {course.content.map((module, index) => (
-                <div key={index}>
-                    <CourseContentTitle>{module.title}</CourseContentTitle>
-                    <CourseContentList>
-                    </CourseContentList>
+        <div className="flex flex-wrap justify-center m-4">
+            {courses.map(course => (
+                <div key={course._id} className="bg-white border rounded-xl shadow-lg m-4 p-4 w-80">
+                    <img src={course.thumbnail} alt={course.title} className="w-full h-44 object-cover rounded-lg" />
+                    <h2 className="font-bold text-lg mt-2">{course.title}</h2>
+                    <p className="text-gray-600 mt-2 mb-2">{course.description}</p>
+                    <div className="w-full bg-gray-200 rounded-full h-5 mt-2">
+                        <div
+                            className="bg-indigo-600 h-5 rounded-full"
+                            style={{ width: `${course.progress}%` }}
+                        ></div>
+                    </div>
+                    <p className="text-sm text-gray-500 mt-1">{course.progress}% completed</p>
+                    <button 
+                        onClick={() => router.push(`/course-page-student/${course._id}`)} 
+                        className="bg-indigo-600 text-white rounded justify-center items-center py-1 px-4 mt-3 hover:bg-indigo-500"
+                    >
+                        Go to Course
+                    </button>
                 </div>
-                ))}
-            </CourseContent>
-            <Button className='bg-indigo-600 hover:bg-indigo-500 m-3'>Go to Course</Button>
-            </CourseCard>
-        ))}
-        </ContinueLearningContainer>
+            ))}
+        </div>
     );
 };
 

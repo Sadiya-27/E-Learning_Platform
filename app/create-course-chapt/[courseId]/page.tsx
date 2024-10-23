@@ -13,12 +13,24 @@ interface Course {
     thumbnail: string;
     overview: string;
     skills: string;
+    sections: Section[];
+}
+
+interface QuizOption {
+    option: string;
+}
+
+interface Quiz {
+    question: string;
+    options: QuizOption[];
+    answer: string;
 }
 
 interface Section {
     title: string;
     description: string;
     chapters: Chapter[];
+    quiz: Quiz[];
 }
 
 interface Chapter {
@@ -32,20 +44,22 @@ export default function CreateChapterPage({ params }: { params: { courseId: stri
     const [sections, setSections] = useState<Section[]>([]);
     const [numSections, setNumSections] = useState(1);
     const [numChapters, setNumChapters] = useState<number[]>([1]);
+    const [numQuizQuestions, setNumQuizQuestions] = useState<number[]>([1]);
 
     useEffect(() => {
         axios.get(`/api/course/${params.courseId}`)
             .then(response => {
-                const course = response.data.result;
-                setCourse(course);
-                setSections(course.sections.map((section) => ({
+                const courseData = response.data.result;
+                setCourse(courseData);
+                setSections(courseData.sections.map((section) => ({
                     title: section.title,
                     description: section.description,
                     chapters: section.chapters.map((chapter) => ({
                         title: chapter.title,
-                        videoUrl: chapter.videoUrl, // Ensure this is being set
+                        videoUrl: chapter.videoUrl,
                         description: chapter.description,
                     })),
+                    quiz: section.quiz.length > 0 ? section.quiz : [{ question: '', options: [{ option: '' }], answer: '' }],
                 })));
             })
             .catch(error => {
@@ -69,9 +83,14 @@ export default function CreateChapterPage({ params }: { params: { courseId: stri
                         videoUrl: chapter.videoUrl,
                         description: chapter.description,
                     })),
+                    quiz: section.quiz.map((quiz) => ({
+                        question: quiz.question,
+                        options: quiz.options.map((option) => ({ option: option.option })),
+                        answer: quiz.answer,
+                    })),
                 })),
             });
-    
+
             console.log('Server response:', response.data);
             if (response.data.success) {
                 toast.success("Course updated successfully!");
@@ -83,45 +102,47 @@ export default function CreateChapterPage({ params }: { params: { courseId: stri
             toast.error("Error updating course.");
         }
     };
-    
 
     const handleAddSection = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-      
+
         try {
-          const courseData = {
-            title: course.title,
-            description: course.description,
-            thumbnail: course.thumbnail,
-            overview: course.overview,
-            skills: course.skills,
-            sections: sections.map((section) => ({
-              title: section.title,
-              description: section.description,
-              chapters: section.chapters.map((chapter) => ({
-                title: chapter.title,
-                videoUrl: chapter.videoUrl, // Ensure this is being set
-                description: chapter.description,
-              })),
-            })),
-          };
-      
-          // Log the courseData to verify the structure and values
-          console.log("Course Data being sent to API:", JSON.stringify(courseData, null, 2));
-      
-          const response = await axios.put(`/api/course/${params.courseId}`, courseData);
-          toast.success("Course updated successfully!");
-        } catch (error) {
-          console.error(error);
-          toast.error("Error updating course.");
+            const courseData = {
+                title: course.title,
+                description: course.description,
+                thumbnail: course.thumbnail,
+                overview: course.overview,
+                skills: course.skills,
+                sections: sections.map((section) => ({
+                    title: section.title,
+                    description: section.description,
+                    chapters: section.chapters.map((chapter) => ({
+                        title: chapter.title,
+                        videoUrl: chapter.videoUrl,
+                        description: chapter.description,
+                    })),
+                    quiz: section.quiz.map((quiz) => ({
+                        question: quiz.question,
+                        options: quiz.options.map((option) => ({ option: option.option })),
+                        answer: quiz.answer,
+                    })),
+                })),
+            };
+
+            console.log("Course Data being sent to API:", JSON.stringify(courseData, null, 2));
+
+            const response = await axios.put(`/api/course/${params.courseId}`, courseData);
+            toast.success("Course updated successfully!");
+        } catch (error ) {
+            console.error(error);
+            toast.error("Error updating course.");
         }
-      };
-    
+    };
 
     const handleInputChange = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = event.target;
         if (course) {
-            setCourse({ ...course, [name]: value });
+ setCourse({ ...course, [name]: value });
         }
     };
 
@@ -129,7 +150,13 @@ export default function CreateChapterPage({ params }: { params: { courseId: stri
         const num = parseInt(event.target.value);
         setNumSections(num);
         setNumChapters(Array(num).fill(1));
-        setSections(Array(num).fill({ title: '', description: '', chapters: [{ title: '', description: '', videoUrl: '' }] }));
+        setNumQuizQuestions(Array(num).fill(1));
+        setSections(Array(num).fill({
+            title: '',
+            description: '',
+            chapters: [{ title: '', description: '', videoUrl: '' }],
+            quiz: [{ question: '', options: [{ option: '' }], answer: '' }],
+        }));
     };
 
     const handleNumChaptersChange = (event: ChangeEvent<HTMLInputElement>, index: number) => {
@@ -143,9 +170,24 @@ export default function CreateChapterPage({ params }: { params: { courseId: stri
         setSections(newSections);
     };
 
-    const handleSectionChange = (index: number, field: string, value: string) => {
+    const handleNumQuizQuestionsChange = (event: ChangeEvent<HTMLInputElement>, index: number) => {
+        const num = parseInt(event.target.value);
+        const newNumQuizQuestions = [...numQuizQuestions];
+        newNumQuizQuestions[index] = num;
+        setNumQuizQuestions(newNumQuizQuestions);
+
         const newSections = [...sections];
-        newSections[index] = { ...newSections[index], [field]: value };
+        newSections[index].quiz = Array(num).fill({ question: '', options: [{ option: '' }], answer: '' });
+        setSections(newSections);
+    };
+
+    const handleSectionChange = (index: number, field: string, value: any) => {
+        const newSections = [...sections];
+        if (field === 'quiz') {
+            newSections[index].quiz = value;
+        } else {
+            newSections[index] = { ...newSections[index], [field]: value };
+        }
         setSections(newSections);
     };
 
@@ -155,13 +197,38 @@ export default function CreateChapterPage({ params }: { params: { courseId: stri
         setSections(newSections);
     };
 
-    const handleVideoUpload = (sectionIndex: number, chapterIndex: number, url: string) => {
-    const newSections = [...sections];
-    newSections[sectionIndex].chapters[chapterIndex].videoUrl = url;
-    setSections(newSections);
-    console.log("Updated video URL:", url); // Add logging to verify the URL is updated
-};
+    const handleQuizChange = (sectionIndex: number, quizIndex: number, field: string, value: string) => {
+        const newSections = [...sections];
+        newSections[sectionIndex].quiz[quizIndex] = { ...newSections[sectionIndex].quiz[quizIndex], [field]: value };
+        setSections(newSections);
+    };
 
+    const handleOptionChange = (sectionIndex: number, quizIndex: number, optionIndex: number, value: string) => {
+        const newSections = [...sections];
+        newSections[sectionIndex].quiz[quizIndex].options[optionIndex].option = value;
+        setSections(newSections);
+    };
+
+    const handleAddOption = (sectionIndex: number, quizIndex: number) => {
+        const newSections = [...sections];
+        newSections[sectionIndex].quiz[quizIndex].options.push({ option: '' });
+        setSections(newSections);
+    };
+
+    const handleRemoveOption = (sectionIndex: number, quizIndex: number, optionIndex: number) => {
+        const newSections = [...sections];
+        if (newSections[sectionIndex].quiz[quizIndex].options.length > 1) {
+            newSections[sectionIndex].quiz[quizIndex].options.splice(optionIndex, 1);
+            setSections(newSections);
+        }
+    };
+
+    const handleVideoUpload = (sectionIndex: number, chapterIndex: number, url: string) => {
+        const newSections = [...sections];
+        newSections[sectionIndex].chapters[chapterIndex].videoUrl = url;
+        setSections(newSections);
+        console.log("Updated video URL:", url);
+    };
 
     return (
         <TeacherHomePage>
@@ -173,11 +240,11 @@ export default function CreateChapterPage({ params }: { params: { courseId: stri
                             <div className='justify-center items-center md:mx-80'>
                                 <h2 className='text-indigo-600 text-2xl mb-5'>Course Details:</h2>
                                 <ul className='text-indigo-600'>
-                                    <h2 className='text-xl mb-3'>Title:</h2>
+                                    <h2 className='text-xl mb-3'>Title:</ h2>
                                     <li>
                                         <input
-                                            className=' mb-5 rounded-md focus:border-indigo-600 text-black focus:text-indigo-600 w-72 md:w-80'
-                                            type="text"
+                                            className=' mb-5 rounded-md text-black  focus:text-indigo-600 border border-slate-500 w-72 md:w-80 p-2 focus:border-indigo-600'
+                                            type="text "
                                             name="title"
                                             value={course.title}
                                             onChange={handleInputChange}
@@ -209,12 +276,12 @@ export default function CreateChapterPage({ params }: { params: { courseId: stri
                                     <h2 className='text-xl mb-3'>Skills:</h2>
                                     <li>
                                         <input
-                                                className=' mb-5 rounded-md focus:border-indigo-600 text-black focus:text-indigo-600 w-72 md:w-80'
-                                                type="text"
-                                                name="skills"
-                                                value={course.skills}
-                                                onChange={handleInputChange}
-                                            />
+                                            className=' mb-5 rounded-md focus:border-indigo-600 text-black focus:text-indigo-600 w-72 md:w-80'
+                                            type="text"
+                                            name="skills"
+                                            value={course.skills}
+                                            onChange={handleInputChange}
+                                        />
                                     </li>
                                     <h2 className='text-xl mb-3'>Thumbnail:</h2>
                                     <li>
@@ -285,9 +352,9 @@ export default function CreateChapterPage({ params }: { params: { courseId: stri
                                                     onChange={(event) => handleNumChaptersChange(event, sectionIndex)}
                                                 />
                                             </label>
-                                            {section.chapters .map((chapter, chapterIndex) => (
+                                            {section.chapters.map((chapter, chapterIndex) => (
                                                 <div className='mb-5' key={chapterIndex}>
-                                                    <h2 className='text-xl mb-3 text-indigo-600'>Chapter {chapterIndex + 1} Title:</h2>
+                                                    <h2 className=' text-xl mb-3 text-indigo-600'>Chapter {chapterIndex + 1} Title:</h2>
                                                     <label>
                                                         <input
                                                             className='rounded-md mb-5 focus:border-indigo-600 focus:text-indigo-600'
@@ -296,7 +363,7 @@ export default function CreateChapterPage({ params }: { params: { courseId: stri
                                                             onChange={(event) => handleChapterChange(sectionIndex, chapterIndex, 'title', event.target.value)}
                                                         />
                                                     </label>
-                                                    <h2 className='text-xl mb-3 text-indigo-600'>Chapter {chapterIndex + 1} Description:</h2>
+                                                    <h2 className='text-xl mb-3 text-indigo-600'> Chapter {chapterIndex + 1} Description:</h2>
                                                     <label>
                                                         <textarea
                                                             className='rounded-md mb-5 focus:border-indigo-600 focus:text-indigo-600'
@@ -328,6 +395,68 @@ export default function CreateChapterPage({ params }: { params: { courseId: stri
                                                     )}
                                                 </div>
                                             ))}
+                                            <h2 className='text-xl mb-3 mt-5 text-indigo-600'>Number of Quiz Questions for {section.title}:</h2>
+                                            <label>
+                                                <input
+                                                    className='rounded-md mb-5 focus:border-indigo-600 focus:text-indigo-600'
+                                                    type="number"
+                                                    value={numQuizQuestions[sectionIndex]}
+                                                    onChange={(event) => handleNumQuizQuestionsChange(event, sectionIndex)}
+                                                />
+                                            </label>
+                                            {section.quiz.map((quiz, quizIndex) => (
+                                                <div key={quizIndex} className='mb-5'>
+                                                    <h3 className='text-indigo-600 text-lg mb-2'>Question {quizIndex + 1}:</h3>
+                                                    <textarea 
+                                                        rows={4}
+                                                        cols={36}
+                                                        className='rounded-md mb-5 focus:border-indigo-600 focus:text-indigo-600'
+                                                        type="text"
+                                                        placeholder="Quiz Question"
+                                                        value={quiz.question}
+                                                        onChange={(event) => {
+                                                            const newQuiz = [...section.quiz];
+                                                            newQuiz[quizIndex].question = event.target.value;
+                                                            handleSectionChange(sectionIndex, 'quiz', newQuiz);
+                                                        }}
+                                                    />
+                                                    {quiz.options.map((option, optionIndex) => (
+                                                        <div key={optionIndex} className='flex items-center mb-2'>
+                                                            <input
+                                                                className='rounded-md mb-5 focus:border-indigo-600 focus:text-indigo-600'
+                                                                type="text"
+                                                                placeholder={`Option ${optionIndex + 1}`}
+                                                                value={option.option}
+                                                                onChange={(event) => handleOptionChange(sectionIndex, quizIndex, optionIndex, event.target.value)}
+                                                            />
+                                                            <Button
+                                                                className='bg-red-600 hover:bg-red-500 text-lg py-2 px-4 mb-5 mx-2'
+                                                                onClick={() => handleRemoveOption(sectionIndex, quizIndex, optionIndex)}
+                                                            >
+                                                                Remove
+                                                            </Button>
+                                                        </div>
+                                                    ))}
+                                                    <Button
+                                                        className='bg-indigo-600 hover:bg-indigo-500 text-lg py-2 px-4 mb-5 mx-2'
+                                                        onClick={() => handleAddOption(sectionIndex, quizIndex)}
+                                                    >
+                                                        Add Option
+                                                    </Button>
+                                                    <h2 className='text-indigo-600 text-lg mb-2'>Correct option:</h2>
+                                                    <input
+                                                        className='rounded-md mb-5 focus:border-indigo-600 focus:text-indigo-600'
+                                                        type="text"
+                                                        placeholder="Correct Answer"
+                                                        value={quiz.answer}
+                                                        onChange={(event) => {
+                                                            const newQuiz = [...section.quiz];
+                                                            newQuiz[quizIndex].answer = event.target.value;
+                                                            handleSectionChange(sectionIndex, 'quiz', newQuiz);
+                                                        }}
+                                                    />
+                                                </div>
+                                            ))}
                                         </div>
                                     ))}
                                     <Button
@@ -345,7 +474,3 @@ export default function CreateChapterPage({ params }: { params: { courseId: stri
         </TeacherHomePage>
     );
 }
-
-
-
-

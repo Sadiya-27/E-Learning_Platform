@@ -24,6 +24,13 @@ const courseModel = new  mongoose.Schema({
             description: String,
             videoUrl: String,
         }],
+        quiz: [{
+            question: String,
+            options: [{
+                    option: String,
+            }],
+            answer: String,
+        }],
     }],
 }, { timestamps: true })
 

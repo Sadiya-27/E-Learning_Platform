@@ -48,6 +48,8 @@ export async function PUT(request, { params }) {
       if (existingSection) {
         existingSection.title = section.title;
         existingSection.description = section.description;
+
+        // Update chapters
         existingSection.chapters = section.chapters.map((chapter) => {
           const existingChapter = existingSection.chapters.find((c) => c._id.toString() === chapter._id);
           if (existingChapter) {
@@ -56,12 +58,26 @@ export async function PUT(request, { params }) {
             existingChapter.videoUrl = chapter.videoUrl;
             return existingChapter;
           } else {
-            return chapter;
+            return chapter; // New chapter
           }
         });
+
+        // Update quizzes
+        existingSection.quizzes = section.quizzes.map((quiz) => {
+          const existingQuiz = existingSection.quizzes.find((q) => q._id && q._id.toString() === quiz._id);
+          if (existingQuiz) {
+            existingQuiz.question = quiz.question;
+            existingQuiz.options = quiz.options;
+            existingQuiz.answer = quiz.answer;
+            return existingQuiz;
+          } else {
+            return quiz; // New quiz
+          }
+        });
+
         return existingSection;
       } else {
-        return section;
+        return section; // New section
       }
     });
 

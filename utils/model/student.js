@@ -5,7 +5,12 @@ const studentModel = new  mongoose.Schema({
     name: String,
     enrolledCourses: [{
         title: String,
-        courseId: String
+        courseId: String,
+        quiz: [{
+            quizId: String,
+            sectionName: String,
+            quizScore: Number
+        }]
     }]
 
 });

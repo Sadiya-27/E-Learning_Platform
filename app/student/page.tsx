@@ -4,14 +4,13 @@ import RecommendedCourses from '@/app/components/recommended-courses'
 import ContinueLearning from '@/app/components/cont-learning'
 import Footer from '@/app/components/Footer-dashboard'
 import Faq from '@/app/components/faq'
-import { useUser , useClerk} from '@clerk/nextjs'
-import { useRouter } from 'next/navigation'
+import { useUser } from '@clerk/nextjs'
 import DashboardLayout from '@/app/components/student-layout'
 
 
 export default function Home(){
     const { user } = useUser();
-    const clerk = useClerk();
+    const userId = user?.id;
 
 
     return (
@@ -27,8 +26,8 @@ export default function Home(){
                         )}
                     </div>
                     <div className='flex flex-wrap mx-4  justify-center mb-10 bg-indigo-300 h-400 mt-14 w-[1/2] rounded-lg  md:mr-10 md:ml-10 p-3 '>
-                        <h1 className=' mt-2 font-bold text-indigo-700 text-center text-2xl'>Continue Learning</h1>
-                        <ContinueLearning />
+                        <h1 className=' mt-2 font-bold text-indigo-700 text-center md:text-left text-2xl'>Continue Learning</h1>
+                        <ContinueLearning className='mt-5'/>
                     </div>
                     <div className='flex flex-wrap mx-4 bg-sky-100 h-400 mt-14 w-[1/2] rounded-lg  md:mr-10  md:ml-10 p-3  text-center justify-center mb-10'>
                         <h1 className=' mt-2 font-bold text-sky-700 text-center text-2xl'>Recommended Courses</h1>

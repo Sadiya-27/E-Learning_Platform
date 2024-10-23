@@ -10,6 +10,7 @@ import toast from 'react-hot-toast';
 import { Student } from '../../../utils/model/student';
 import { useRouter } from 'next/navigation'
 import Footer from '@/app/components/Footer-dashboard'
+import Link from 'next/link';
 
 interface Course {
     _id : string;
@@ -62,62 +63,8 @@ export default function CourseDetailPage({ params }: { params: { courseId: strin
         );
     };
 
-    const handleEnroll = async () => {
-        if (!user) {
-            toast.error('You need to be logged in to enroll in this course.');
-            router.push('/');
-            return;
-        }
-    
-        const userid = clerk.user?.id;
-        try {
-            // Fetch student data
-            const response = await fetch('/api/student');
-            if (!response.ok) {
-                toast.error('Failed to fetch student data');
-            }
-    
-            const findStudent = await response.json();
-            const foundStudent = findStudent.result.find((student) => student.userId === userid);
-    
-            if (foundStudent) {
-                // Check if the student is already enrolled in the course
-                const isAlreadyEnrolled = foundStudent.enrolledCourses.some(course => course.courseId === params.courseId);
-    
-                if (isAlreadyEnrolled) {
-                    toast('You are already enrolled in this course.');
-                    router.push(`/go-to-course-student/${course._id}`);
-                    return; // Exit the function if already enrolled
-                }
-    
-                // Enroll the student in the course
-                const enrollResponse = await fetch(`/api/student/${userid}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        courseId: params.courseId,
-                        title: course?.title
-                    })
-                });
-    
-                if (!enrollResponse.ok) {
-                    toast.error('Failed to enroll in course');
-                } else {
-                    toast.success('You have been successfully enrolled in the course.');
-                    router.push(`/go-to-course-student/${course._id}`);
-
-                }
-    
-            } else {
-                toast.error('Student not found');
-                router.push('/');
-            }
-        } catch (error) {
-            console.error('Enrollment failed:', error);
-            toast.error(error.message || 'There was an error enrolling in the course. Please try again later.');
-        }
+    const handleGoToCourse = async () => {
+        router.push(`/course-page-student/${course._id}`)
     };
 
     return (
@@ -130,7 +77,7 @@ export default function CourseDetailPage({ params }: { params: { courseId: strin
                             <div className='flex flex-col justify-center mx-6 mb-5 mt-5 md:ml-10'>
                                 <h1 className='text-3xl font-bold text-indigo-700'>{course.title}</h1>
                                 <p className='text-xl font-medium text-slate-700 mt-3'>{course.description}</p>
-                                <Button onClick={handleEnroll} className='mt-5 bg-indigo-600 hover:bg-indigo-500 text-lg py-2 px-4'>Enroll</Button>
+                                <Button onClick={handleGoToCourse} className='mt-5 bg-indigo-600 hover:bg-indigo-500 text-lg py-2 px-4'>Go to Course</Button>
                             </div>
                         </div>
                         <div className='flex flex-wrap bg-slate-100 rounded-lg justify-center items-center p-5 md:justify-start mt-5 md:mx-10 shadow-xl mx-6'>
@@ -197,7 +144,7 @@ export default function CourseDetailPage({ params }: { params: { courseId: strin
                                                     <div key={chapterIndex} className='mb-2 flex items-center'>
                                                         <SquarePlay className='mr-2 text-indigo-700 w-6 h-6' />
                                                         <div>
-                                                            <h4 className='text-lg font-medium text-slate-700 pt-4'>{chapterIndex + 1}. {chapter.title}</h4>
+                                                            <Link href={`/course-page-student/${course._id}`} className='text-lg font-medium text-slate-700 pt-4'>{chapterIndex + 1}. {chapter.title}</Link>
                                                             <p className='text-sm text-slate-500'>{chapter.description}</p>
                                                         </div>
                                                     </div>
