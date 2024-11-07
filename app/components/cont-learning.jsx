@@ -22,19 +22,25 @@ const ContinueLearning = () => {
             try {
                 const response = await axios.get(`/api/student/${userId}`);
                 const { result } = response.data;
+                console.log(result)
 
                 // Check if enrolledCourses exists and is an array
                 if (Array.isArray(result.enrolledCourses) && result.enrolledCourses.length) {
                     const coursePromises = result.enrolledCourses.map(async (course) => {
                         const courseResponse = await axios.get(`/api/course/${course.courseId}`);
                         const courseData = courseResponse.data.result;
+                        console.log(courseData)
 
-                        // Calculate progress based on quizzes
-                        const quizzes = Array.isArray(courseData.sections) ? courseData.sections : [];
-                        const totalQuizzes = quizzes.length;
-                        const completedQuizzes = result.enrolledCourses.filter(quiz => quiz.quizId).length;
-                        console.log(result.enrolledCourses.filter(quiz => quiz.quizId))
+                        // Calculate total quizzes in the course by summing up all quizzes in each section
+                        const totalQuizzes = courseData.sections ? courseData.sections.length : 0;
+
+                        // Count user's completed quizzes for this course from the `quiz` array
+                        const completedQuizzes = course.quiz ? course.quiz.length : 0;
+                        console.log(completedQuizzes)
+
+                        // Calculate progress as a percentage
                         const progress = totalQuizzes ? (completedQuizzes / totalQuizzes) * 100 : 0;
+
 
                         return {
                             ...courseData,

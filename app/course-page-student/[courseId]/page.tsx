@@ -19,6 +19,7 @@ export default function CoursePage({ params }: { params: { courseId: string } })
     const [isQuizOpen, setIsQuizOpen] = useState(false);
     const [currentQuiz, setCurrentQuiz] = useState<{ question: string; options: { option: string }[]; answer: string }[]>([]);
     const [student, setStudent] = useState<Student | null>(null);
+    const [currentSectionId, setCurrentSectionId] = useState<string | null>(null);
 
     useEffect(() => {
         axios.get(`/api/course/${params.courseId}`)
@@ -26,6 +27,7 @@ export default function CoursePage({ params }: { params: { courseId: string } })
                 const courseData = response.data.result;
                 setCourse(courseData);
                 const sectionsData = courseData.sections.map((section) => ({
+                    _id: section._id, 
                     title: section.title,
                     description: section.description,
                     chapters: section.chapters.map((chapter) => ({
@@ -34,6 +36,7 @@ export default function CoursePage({ params }: { params: { courseId: string } })
                         description: chapter.description,
                     })),
                     quiz: section.quiz.length > 0 ? section.quiz : [{ question: '', options: [{ option: '' }], answer: '' }],
+                    
                 }));
 
                 setSections(sectionsData);
@@ -74,14 +77,16 @@ export default function CoursePage({ params }: { params: { courseId: string } })
         setExpandedSections(newExpandedSections);
     };
 
-    const openQuiz = (quiz: { question: string; options: { option: string }[]; answer: string }[]) => {
+    const openQuiz = (quiz: { question: string; options: { option: string }[]; answer: string }[], sectionId : string) => {
         setIsQuizOpen(true);
         setCurrentQuiz(quiz);
+        setCurrentSectionId(sectionId);
     };
     
     const closeQuiz = () => {
         setIsQuizOpen(false);
         setCurrentQuiz([]); // Reset the current quiz
+        setCurrentSectionId(null);
     };
 
     return (
@@ -127,7 +132,7 @@ export default function CoursePage({ params }: { params: { courseId: string } })
                                 {expandedSections.has(index) && section.quiz.length > 0 && (
                                     <div className=''>
                                         <Button
-                                            onClick={() => openQuiz(section.quiz)}
+                                            onClick={() => openQuiz(section.quiz, section._id)}
                                             className="bg-indigo-600 hover:bg-indigo-500 text-white p-2 mx-20 mt-4"
                                         >
                                             Take Quiz
@@ -165,7 +170,8 @@ export default function CoursePage({ params }: { params: { courseId: string } })
                     courseId={params.courseId} 
                     courseTitle={selectedChapter.title} // Pass chapter title
                     sectionName={sections.find(section => section.chapters.find(chapter => chapter.title === selectedChapter.title))?.title} // Pass section name
-                    userId={userId} // Pass userId correctly
+                    userId={userId}
+                    sectionId={currentSectionId} // Pass userId correctly
                 />
             )}
         </div>

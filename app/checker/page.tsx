@@ -11,7 +11,7 @@ export default function Checking() {
     const router = useRouter();
     try {
         const getUsers = async () => {
-            let userId = clerk.user?.id;
+            let userId = user?.id;
             if (userId) {
                 const userid = userId.toString();
 

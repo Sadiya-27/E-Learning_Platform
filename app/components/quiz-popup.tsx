@@ -8,9 +8,10 @@ interface QuizPopupProps {
     courseTitle: string;
     sectionName: string;
     userId: string;
+    sectionId: string;
 }
 
-const QuizPopup: React.FC<QuizPopupProps> = ({ quiz, onClose, courseId, courseTitle, sectionName, userId }) => {
+const QuizPopup: React.FC<QuizPopupProps> = ({ quiz, onClose, courseId, courseTitle, sectionName, userId, sectionId }) => {
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [selectedAnswers, setSelectedAnswers] = useState<string[]>(Array(quiz.length).fill(''));
     const [score, setScore] = useState<number | null>(null);
@@ -22,7 +23,7 @@ const QuizPopup: React.FC<QuizPopupProps> = ({ quiz, onClose, courseId, courseTi
         setSelectedAnswers(newAnswers);
     };
 
-    const saveScoreToDatabase = async (userId: string, courseId: string, sectionName: string, quizScore: number) => {
+    const saveScoreToDatabase = async (userId: string, courseId: string, sectionName: string, quizScore: number, sectionId: string) => {
         setLoading(true);
         try {
             const response = await fetch(`/api/student/${userId}`, {
@@ -32,11 +33,12 @@ const QuizPopup: React.FC<QuizPopupProps> = ({ quiz, onClose, courseId, courseTi
                 },
                 body: JSON.stringify({ 
                     courseId, 
-                    quizId: courseId + '-' + sectionName, // or any unique identifier for the quiz
+                    quizId: sectionId, // Use sectionId as the quiz identifier
                     sectionName, 
                     quizScore 
                 }),
             });
+
             if (!response.ok) {
                 throw new Error('Failed to save score');
             }
@@ -55,7 +57,7 @@ const QuizPopup: React.FC<QuizPopupProps> = ({ quiz, onClose, courseId, courseTi
                 return answer === quiz[index].answer ? total + 1 : total;
             }, 0);
             setScore(calculatedScore);
-            await saveScoreToDatabase(userId, courseId, sectionName, calculatedScore);
+            await saveScoreToDatabase(userId, courseId, sectionName, calculatedScore, sectionId);
         }
     };
 
@@ -98,7 +100,7 @@ const QuizPopup: React.FC<QuizPopupProps> = ({ quiz, onClose, courseId, courseTi
                     </div>
                 ) : (
                     <>
-                        <div className ="mb-4">
+                        <div className="mb-4">
                             <p className="font-semibold">{quiz[currentQuestionIndex].question}</p>
                             <ul>
                                 {quiz[currentQuestionIndex].options.map((option, optIndex) => (
@@ -110,7 +112,7 @@ const QuizPopup: React.FC<QuizPopupProps> = ({ quiz, onClose, courseId, courseTi
                                                 value={option.option} 
                                                 checked={selectedAnswers[currentQuestionIndex] === option.option}
                                                 onChange={(e) => handleAnswerChange(e, currentQuestionIndex)} 
-                                                className='mr-3'
+                                                className="mr-3"
                                             />
                                             {option.option}
                                         </label>

@@ -72,13 +72,16 @@ export default function CourseDetailPage({ params }: { params: { courseId: strin
         const userid = clerk.user?.id;
         try {
             // Fetch student data
-            const response = await fetch('/api/student');
+            const response = await fetch(`/api/student`);
             if (!response.ok) {
                 toast.error('Failed to fetch student data');
             }
     
             const findStudent = await response.json();
             const foundStudent = findStudent.result.find((student) => student.userId === userid);
+
+            console.log(findStudent.result)
+            console.log(foundStudent.enrolledCourses)
     
             if (foundStudent) {
                 // Check if the student is already enrolled in the course
@@ -91,16 +94,18 @@ export default function CourseDetailPage({ params }: { params: { courseId: strin
                 }
     
                 // Enroll the student in the course
-                const enrollResponse = await fetch(`/api/student/${userid}`, {
+                const enrollResponse = await fetch(`/api/student/enroll/${userid}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
+                        studentId: userid,
                         courseId: params.courseId,
                         title: course?.title
                     })
                 });
+                console.log(enrollResponse)
     
                 if (!enrollResponse.ok) {
                     toast.error('Failed to enroll in course');

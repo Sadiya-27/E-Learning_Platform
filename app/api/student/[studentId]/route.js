@@ -48,23 +48,36 @@ export async function PUT(request, { params }) {
 
         await connectToDatabase();
 
-        const updatedStudent = await Student.findOneAndUpdate(
-            { userId: studentId, 'enrolledCourses.courseId': courseId }, 
-            {
-                $push: { 
-                    'enrolledCourses.$.quiz': { quizId, sectionName, quizScore }
-                }
-            },
-            { new: true }
-        );
+        const student = await Student.findOne({ userId: studentId, 'enrolledCourses.courseId': courseId });
 
-        if (!updatedStudent) {
+        if (!student) {
             return NextResponse.json({ success: false, error: 'Student or course not found' }, { status: 404 });
         }
 
-        return NextResponse.json({ result: updatedStudent, success: true });
+        // Find the course in the student's enrolledCourses array
+        const course = student.enrolledCourses.find(c => c.courseId === courseId);
+        if (!course) {
+            return NextResponse.json({ success: false, error: 'Course not found for this student' }, { status: 404 });
+        }
+
+        // Find the quiz in the course's quiz array
+        const quiz = course.quiz.find(q => q.quizId === quizId);
+
+        if (quiz) {
+            // Update the existing quiz score
+            quiz.quizScore = quizScore;
+        } else {
+            // Add a new quiz entry
+            course.quiz.push({ quizId, sectionName, quizScore });
+        }
+
+        // Save the updated student data
+        await student.save();
+
+        return NextResponse.json({ result: student, success: true });
     } catch (error) {
         console.error('Error updating student quiz results:', error);
         return NextResponse.json({ success: false, error: error.message || 'Failed to update quiz results' }, { status: 500 });
     }
 }
+
