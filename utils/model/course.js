@@ -6,7 +6,9 @@ const courseModel = new  mongoose.Schema({
     category: String,
     duration: String,
     level: String,
-    ratings: Number,
+    ratings: [{
+        rating: Number,
+    }],
     author: [
         {
             name: String,

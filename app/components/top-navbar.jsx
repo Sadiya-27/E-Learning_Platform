@@ -27,10 +27,10 @@ const Navbar = () => {
                             <a href="">About Us</a>
                         </li>
                         <li className="ml-10 text-l">
-                            <a href="">Course</a>
+                            <a href={'/sign-up'}>Course</a>
                         </li>
                         <li className="ml-10 text-l">
-                            <a href="">Become a Teacher</a>
+                            <a href={'/sign-up'}>Become a Teacher</a>
                         </li>
                         <li className="mx-5">
                                 

@@ -7,6 +7,7 @@ import { ChevronDown, ChevronUp, Folder, FolderOpen, Youtube, Menu, X } from 'lu
 import QuizPopup from '@/app/components/quiz-popup';
 import { Button } from '@/components/ui/button';
 import { useUser } from '@clerk/nextjs';
+import FeedbackForm from '@/app/components/feedback';
 
 export default function CoursePage({ params }: { params: { courseId: string } }) {
     const { user } = useUser();
@@ -20,6 +21,7 @@ export default function CoursePage({ params }: { params: { courseId: string } })
     const [currentQuiz, setCurrentQuiz] = useState<{ question: string; options: { option: string }[]; answer: string }[]>([]);
     const [student, setStudent] = useState<Student | null>(null);
     const [currentSectionId, setCurrentSectionId] = useState<string | null>(null);
+    const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
 
     useEffect(() => {
         axios.get(`/api/course/${params.courseId}`)
@@ -77,7 +79,7 @@ export default function CoursePage({ params }: { params: { courseId: string } })
         setExpandedSections(newExpandedSections);
     };
 
-    const openQuiz = (quiz: { question: string; options: { option: string }[]; answer: string }[], sectionId : string) => {
+    const openQuiz = (quiz: { question: string; options: { option: string }[]; answer: string }[], sectionId: string) => {
         setIsQuizOpen(true);
         setCurrentQuiz(quiz);
         setCurrentSectionId(sectionId);
@@ -87,6 +89,14 @@ export default function CoursePage({ params }: { params: { courseId: string } })
         setIsQuizOpen(false);
         setCurrentQuiz([]); // Reset the current quiz
         setCurrentSectionId(null);
+    };
+
+    const openFeedback = () => {
+        setIsFeedbackOpen(true);
+    };
+
+    const closeFeedback = () => {
+        setIsFeedbackOpen(false);
     };
 
     return (
@@ -141,6 +151,16 @@ export default function CoursePage({ params }: { params: { courseId: string } })
                                 )}
                             </div>
                         ))}
+                        {selectedChapter && (
+                            <div className='mt-4'>
+                                <Button
+                                    onClick={openFeedback}
+                                    className="bg-indigo-600 hover:bg-indigo-500 text-white p-2 mx-5 mb-10"
+                                >
+                                    Course Complete Feedback
+                                </Button>
+                            </div>
+                        )}
                     </div>
                 </div>
                 <div className={`flex-1 mt-7 md:mt-0 p-4 ${isSidebarOpen ? 'ml-6' : 'ml-0'} md:ml-72`}>
@@ -172,6 +192,13 @@ export default function CoursePage({ params }: { params: { courseId: string } })
                     sectionName={sections.find(section => section.chapters.find(chapter => chapter.title === selectedChapter.title))?.title} // Pass section name
                     userId={userId}
                     sectionId={currentSectionId} // Pass userId correctly
+                />
+            )}
+            {isFeedbackOpen && (
+                <FeedbackForm 
+                    courseId={params.courseId} 
+                    userId={userId} 
+                    onClose={closeFeedback} 
                 />
             )}
         </div>

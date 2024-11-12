@@ -21,6 +21,6 @@
       "@/*": ["./*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "app/components/top-navbar.jsx", "app/components/sign-in/_app.jsx", "app/pages/signed-in/_app.jsx", "app/pages/register/register.js", "app/student/student-landing.js", "app/components/student-layout.js", "app/student/student-landing.js", "app/components/layout.js", "app/components/sidebar.jsx", "app/api/upload-image/route.js", "app/api/student.js"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "app/components/top-navbar.jsx", "app/components/sign-in/_app.jsx", "app/pages/signed-in/_app.jsx", "app/pages/register/register.js", "app/student/student-landing.js", "app/components/student-layout.js", "app/student/student-landing.js", "app/components/layout.js", "app/components/sidebar.jsx", "app/api/upload-image/route.js", "app/api/student.js", "app/components/feedback.jsx"],
   "exclude": ["node_modules"]
 }

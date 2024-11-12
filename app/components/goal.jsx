@@ -3,9 +3,9 @@ import React from 'react';
 const Goals = () => {
   return (
     <div className="flex flex-wrap mt-10 text-center mb-4">
-      <div className="flex text-center justify-center flex-wrap mx-auto p-4 md:p-2 lg:p-2 xl:p-2 shadow-xl rounded-3xl bg-blue-200 text-gray-700 w-full md:w-10/12 lg:w-8/12 xl:w-6/12 mx-auto z-10">
+      <div className="flex text-center justify-center flex-wrap mx-auto p-4 md:p-2 lg:p-2 xl:p-2 shadow-xl rounded-3xl bg-blue-200 text-gray-700 w-full md:w-10/12 lg:w-8/12 xl:w-6/12 z-10">
         <h2 className="text-3xl text-blue-800 items-center justify-center text-center font-bold mb-4">Our Goals</h2>
-        <ul className="list-none px-10 overflow-y-auto">
+        <ul className="list-none px-3 md:px-10 overflow-y-auto">
           <li className="mb-4 bg-sky-100 p-5 rounded-xl">
             <h3 className="text-xl text-blue-800 font-bold mb-2">Empower Lifelong Learning</h3>
             <p className="text-lg">Our goal is to provide free access to high-quality educational resources, empowering individuals to take control of their learning journey and acquire new skills for a better future.</p>

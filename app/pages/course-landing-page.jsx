@@ -23,8 +23,8 @@ function CourseLandingPage() {
                 <div>
 
                 </div>
-                <div className='m-8 mt-10 p-2 border rounded-xl shadow-2xl flex-auto justify-center items-center catalog'>
-                    <h1 className='items-center text-indigo-800 font-bold text-3xl text-center pt-10'>Explore our collection </h1>
+                <div className='md:m-8 m-4 mt-10 p-2 border rounded-xl shadow-2xl flex-auto justify-center items-center catalog'>
+                    <h1 className='items-center text-indigo-800 font-bold text-3xl text-center pt-10 px-3'>Explore our collection </h1>
                     <Catalog>
                         <Card/>
                     </Catalog>
