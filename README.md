@@ -1,3 +1,28 @@
+The E-Learning Platform, named "FutureSelf," is an innovative solution aimed at providing quality education and skill development to underprivileged children and individuals. The primary objective of FutureSelf is to bridge the educational gap by delivering accessible and effective online learning experiences. The platform is designed with the United Nations' Sustainable Development Goal 1 in mind: End poverty in all its forms everywhere. It offers a robust, scalable, and user-friendly environment for online education, facilitating seamless interactions between students, educators, and administrators.
+
+
+Landing Page:
+
+![image](https://github.com/user-attachments/assets/f331f580-5cce-48f9-97d5-23df6c14d776)
+
+Sign-in with clerk:
+
+![image](https://github.com/user-attachments/assets/6cd9af98-5e50-4e60-b58a-95da0f980329)
+
+Student Dashboard:
+
+![image](https://github.com/user-attachments/assets/b8375a76-a93d-4121-92e3-5bfd4bf5561e)
+
+Educator Dashboard: 
+
+
+
+Course Page:
+
+![image](https://github.com/user-attachments/assets/e54dc1d4-7679-4c19-83f8-04cf470e193d)
+
+Course Content 
+
 
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
