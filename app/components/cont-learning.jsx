@@ -22,21 +22,18 @@ const ContinueLearning = () => {
             try {
                 const response = await axios.get(`/api/student/${userId}`);
                 const { result } = response.data;
-                console.log(result)
 
                 // Check if enrolledCourses exists and is an array
                 if (Array.isArray(result.enrolledCourses) && result.enrolledCourses.length) {
                     const coursePromises = result.enrolledCourses.map(async (course) => {
                         const courseResponse = await axios.get(`/api/course/${course.courseId}`);
                         const courseData = courseResponse.data.result;
-                        console.log(courseData)
 
                         // Calculate total quizzes in the course by summing up all quizzes in each section
                         const totalQuizzes = courseData.sections ? courseData.sections.length : 0;
 
                         // Count user's completed quizzes for this course from the `quiz` array
                         const completedQuizzes = course.quiz ? course.quiz.length : 0;
-                        console.log(completedQuizzes)
 
                         // Calculate progress as a percentage
                         const progress = totalQuizzes ? (completedQuizzes / totalQuizzes) * 100 : 0;
@@ -80,7 +77,7 @@ const ContinueLearning = () => {
     }
 
     return (
-        <div className="flex flex-wrap justify-center m-4">
+        <div className="flex flex-wrap justify-center m-4 md:mt-10">
             {courses.map(course => (
                 <div key={course._id} className="bg-white border rounded-xl shadow-lg m-4 p-4 w-80">
                     <img src={course.thumbnail} alt={course.title} className="w-full h-44 object-cover rounded-lg" />
