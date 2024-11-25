@@ -15,13 +15,19 @@ Student Dashboard:
 
 Educator Dashboard: 
 
-
+![image](https://github.com/user-attachments/assets/9567cb32-7489-4f05-8c43-e416a68a23f7)
 
 Course Page:
 
 ![image](https://github.com/user-attachments/assets/e54dc1d4-7679-4c19-83f8-04cf470e193d)
 
-Course Content 
+Course Content Page:
+
+![image](https://github.com/user-attachments/assets/38676398-3ea0-4eed-a6c7-3ee98540d95c)
+
+Course Analytics:
+
+![image](https://github.com/user-attachments/assets/43b5d636-78d9-4188-ac91-e80a1b25ee67)
 
 
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
