@@ -1,5 +1,5 @@
 import type { Config } from "tailwindcss";
-import flowbite from "flowbite/plugin";
+import flowbite from "flowbite";
 
 const config: Config = {
     darkMode: ["class"],
